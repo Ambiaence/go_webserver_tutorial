@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"os"
+	"log"
+	"net/http"
 )
 
 type Page struct {
@@ -26,9 +28,13 @@ func load_page(title string) (*Page, error){
 	return &Page{Title: title, Body: body}, nil
 }
 
+func view_handler(writer http.ResponseWriter, request *http.Request) {
+	title := request.URL.Path[len("/view/"):]
+	page, _ := load_page(title)
+	fmt.Fprintf(writer, "<h1>%s</h1> <div>%s</div>", page.Title, page.Body) // It's FPrintf
+}
+
 func main() {
-	p1 := &Page{Title: "Cool", Body: []byte("This is a cool page")}
-	p1.save()
-	p2, _ := load_page("Cool")
-	fmt.Println(string(p2.Body))
+	http.HandleFunc("/view/", view_handler)
+	log.Fatal(http.ListenAndServe(":8080", nil))
 }
